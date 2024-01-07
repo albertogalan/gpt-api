@@ -1,0 +1,17 @@
+openai==1.6.1
+pytesseract
+pynput
+pillow
+#opencv-python
+git+https://github.com/almottier/TapoP100.git@main
+telegram-send # send messages to telegram
+python-telegram-bot==13.13
+imagehash
+load-dotenv
+urllib3==1.26.15 # fix for telegram bot
+nuitka # compile python to binary
+
+
+###
+flask
+pyopenssl

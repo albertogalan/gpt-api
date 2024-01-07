@@ -29,7 +29,6 @@ def openai():
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
     # Your OpenAI API key
-    api_key = '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'
     api_key='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'
 
     # Headers for OpenAI request
@@ -63,10 +62,7 @@ def proxy(path):
     elif request.method == 'GET':
         print("get")
         response = requests.get(url, headers=headers, params=request.args)
-
-
     return response.json()
-    #return "ehho"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001, ssl_context=('cert.pem','key.pem'), host='0.0.0.0')
+    app.run(debug=True, port=8080, ssl_context=('src/cert.pem','src/key.pem'), host='0.0.0.0')

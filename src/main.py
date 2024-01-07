@@ -5,10 +5,32 @@ import json
 import hashlib
 app = Flask(__name__)
 
+
+def openai():
+    import os
+    from openai import OpenAI
+
+    client = OpenAI(
+        # This is the default and can be omitted
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+
+
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
     # Your OpenAI API key
     api_key = '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'
+    api_key='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'
 
     # Headers for OpenAI request
     headers = {
@@ -33,10 +55,11 @@ def proxy(path):
     #data=request.json
     #print(jsonify(data))
     data=request.get_json()
-    url = f'https://api.openai.com/{path}'
+    url = f'https://api.openai.com/'+ path
     if request.method == 'POST':
         print("post")
         response = requests.post(url, headers=headers, data=json.dumps(data))
+        print(response.json())
     elif request.method == 'GET':
         print("get")
         response = requests.get(url, headers=headers, params=request.args)
@@ -46,4 +69,4 @@ def proxy(path):
     #return "ehho"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, ssl_context='adhoc', host='0.0.0.0')
+    app.run(debug=True, port=5001, ssl_context=('cert.pem','key.pem'), host='0.0.0.0')

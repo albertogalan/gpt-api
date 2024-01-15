@@ -37,7 +37,12 @@ def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
     command = f"termux-tts-speak -l {language} -p {pitch} -r {rate} {shlex.quote(text)}"
     command = f"echo '{text}' | gtts-cli - -l 'en' | mpv -"
     # Executing the command
-    subprocess.run(command, shell=True, check=True)
+    try:
+        # Executing the command with a timeout of 5 seconds
+        subprocess.run(command, shell=True, check=True, timeout=5)
+    except subprocess.TimeoutExpired:
+        raise Exception("The subprocess did not respond in 5 seconds.")
+
     return "Success"
 
 @app.route('/speak', methods=['POST'])

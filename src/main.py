@@ -18,8 +18,22 @@ import shlex
 
 app = Flask(__name__)
 
+
+import re
+
+def sanitize_text(text):
+    # Regular expression pattern to match only allowed characters
+    # ^ outside of character set means negation, so it matches everything that is NOT a-zA-Z0-9.,
+    pattern = '[^a-zA-Z0-9.,]'
+
+    # Replace all characters not in the allowed set with an empty string
+    sanitized_text = re.sub(pattern, '', text)
+
+    return sanitized_text
+
 def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
     # Constructing the command
+    text=sanitized_text(text)
     command = f"termux-tts-speak -l {language} -p {pitch} -r {rate} {shlex.quote(text)}"
     # Executing the command
     subprocess.run(command, shell=True, check=True)

@@ -33,7 +33,7 @@ def sanitize_text(text):
 
 def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
     # Constructing the command
-    text=sanitized_text(text)
+    text=sanitize_text(text)
     command = f"termux-tts-speak -l {language} -p {pitch} -r {rate} {shlex.quote(text)}"
     # Executing the command
     subprocess.run(command, shell=True, check=True)

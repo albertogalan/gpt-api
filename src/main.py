@@ -35,6 +35,7 @@ def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
     # Constructing the command
     text=sanitize_text(text)
     command = f"termux-tts-speak -l {language} -p {pitch} -r {rate} {shlex.quote(text)}"
+    command = f"echo '{text}' | gtts-cli - -l 'en' | mpv -"
     # Executing the command
     subprocess.run(command, shell=True, check=True)
     return "Success"
@@ -64,7 +65,6 @@ def speak():
 def proxy(path):
     try:
       # Your OpenAI API key
-      logger.info(os.environ.get("OPENAI_API_KEY"))
       api_key=os.environ.get("OPENAI_API_KEY")
       # Headers for OpenAI request
       headers = {

@@ -39,7 +39,7 @@ def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
     # Executing the command
     try:
         # Executing the command with a timeout of 5 seconds
-        subprocess.run(command, shell=True, check=True, timeout=5)
+        subprocess.run(command, shell=True, check=True, timeout=10)
     except subprocess.TimeoutExpired:
         raise Exception("The subprocess did not respond in 5 seconds.")
 

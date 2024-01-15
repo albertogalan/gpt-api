@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Endpoint Buttons</title>
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <button id="screenshotButton">Screenshot</button>
+        <button id="coordinatesButton">Get Coordinates</button>
+    </div>
+
+    <script>
+        document.getElementById("screenshotButton").addEventListener("click", function() {
+            fetch("http://yourserver.com/screenshot", {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error("Error:", error));
+        });
+
+        document.getElementById("coordinatesButton").addEventListener("click", function() {
+            fetch("http://yourserver.com/get-coordinates", {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+</body>
+</html>

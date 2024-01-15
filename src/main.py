@@ -40,8 +40,10 @@ def speak():
 
         # Call the Termux TTS function
         result = termux_tts_speak(text, pitch, rate, language)
+        logger.info(result)
         return jsonify({'message': result})
     except Exception as e:
+        logger.error(e)
         return jsonify({'error': str(e)}), 400
 
 @app.route('/<path:path>', methods=['GET', 'POST'])

@@ -25,7 +25,7 @@
 
     <script>
         document.getElementById("screenshotButton").addEventListener("click", function() {
-            fetch("http://yourserver.com/screenshot", {
+            fetch("http://192.168.8.141:8080/screenshot", {
                 method: "POST"
             })
             .then(response => response.json())
@@ -34,7 +34,7 @@
         });
 
         document.getElementById("coordinatesButton").addEventListener("click", function() {
-            fetch("http://yourserver.com/get-coordinates", {
+            fetch("http://192.168.8.141:8080/getcoordinates", {
                 method: "POST"
             })
             .then(response => response.json())

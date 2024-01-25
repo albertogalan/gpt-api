@@ -98,4 +98,4 @@ def proxy(path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080, ssl_context=('src/cert.pem','src/key.pem'), host='0.0.0.0')
+    app.run(debug=True, port=8080, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')

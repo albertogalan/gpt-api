@@ -9,13 +9,11 @@ import os
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-# say hello
-logger.info("Hello, GPT")
 
 # speak
 import subprocess
 import shlex
-
+import io
 app = Flask(__name__)
 
 
@@ -31,19 +29,57 @@ def sanitize_text(text):
 
     return sanitized_text
 
-def termux_tts_speak(text, pitch=1.0, rate=1.0, language='eng'):
+
+def termux_tts_speakold(text, language='en'):
     # Constructing the command
     text=sanitize_text(text)
-    command = f"termux-tts-speak -l {language} -p {pitch} -r {rate} {shlex.quote(text)}"
     command = f"echo '{text}' | gtts-cli - -l 'en' | mpv -"
-    # Executing the command
     try:
         # Executing the command with a timeout of 5 seconds
-        subprocess.run(command, shell=True, check=True, timeout=10)
+        subprocess.run(command, shell=True, check=True, timeout=20)
     except subprocess.TimeoutExpired:
-        raise Exception("The subprocess did not respond in 5 seconds.")
-
+        raise Exception("The subprocess did not respond in 20 seconds.")
     return "Success"
+
+def termux_tts_speak(text, language='en', endpoint='192.168.141:8080'):
+    # Constructing the command
+    text=sanitize_text(text)
+    # Your specific data
+    data = {
+        "text": text,
+        "language": language,
+        }
+    url = "http://"+endpoint
+
+    # Send the POST request
+    response = requests.post(url, data=data)
+    # Check if the request was successful
+    if response.status_code == 200:
+    # Use io.BytesIO to create a file-like object from the response content
+        mp3_fp = io.BytesIO(response.content)
+
+    try:
+        # Executing the command with a timeout of 40 seconds
+        logger.info("playing ... ")
+        subprocess.run(['mpv', '-'], input=mp3_fp.read(), check=True, timeout=40)
+
+    except subprocess.TimeoutExpired:
+        raise Exception("The subprocess did not respond in 20 seconds.")
+    return "Success"
+
+@app.route('/speakold', methods=['POST'])
+def speakold():
+    try:
+        data = request.json
+        text = data.get('text')
+        logger.info(text)
+        language = data.get('language','eng')
+        endpoint="http://fake.com"
+        result = termux_tts_speakold(text, language)
+        return jsonify({'message': text})
+    except Exception as e:
+        logger.error(e)
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/speak', methods=['POST'])
 def speak():
@@ -51,20 +87,22 @@ def speak():
         # Extracting data from the POST request
         data = request.json
         text = data.get('text')
-        pitch = data.get('pitch', 1.0)  # Default value for pitch
-        rate = data.get('rate', 1.0)    # Default value for rate
         language = data.get('language','eng')
+        model = data.get('model','gpt2')
+
+        # get endpoint form env variable
+        endpoint=os.environ.get("ENDPOINT")
 
         if not text:
             raise ValueError("Text is required")
 
         # Call the Termux TTS function
-        result = termux_tts_speak(text, pitch, rate, language)
+        result = termux_tts_speak(text, language, endpoint)
         logger.info(result)
         return jsonify({'message': result})
     except Exception as e:
         logger.error(e)
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
@@ -98,4 +136,4 @@ def proxy(path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')
+    app.run(debug=True, port=8082, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')

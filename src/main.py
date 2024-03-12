@@ -7,8 +7,16 @@ import os
 
 # logs
 import logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+if os.environ.get("LOGLEVEL")=="DEBUG":
+    logger.setLevel(logging.DEBUG)
+if os.environ.get("LOGLEVEL")=="INFO":
+    logger.setLevel(logging.INFO)
+else:
+    logging.debug("invisible magic")
+    logger.setLevel(logging.ERROR)
+
+import sys
 
 # speak
 import subprocess
@@ -101,7 +109,10 @@ def speak():
         logger.info(result)
         return jsonify({'message': result})
     except Exception as e:
-        logger.error(e)
+        # show the error line
+        exc_type, exc_obj, tb = sys.exc_info()
+        frame = os.path.split(tb.tb_frame.f_code.co_filename)[1]
+        logger.error(exc_type, frame, tb.tb_lineno)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/ey', methods=['POST'])
@@ -136,7 +147,6 @@ def proxy():
         print("eyy")
         logger.error(e)
         return logger.error(e), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=8083, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')

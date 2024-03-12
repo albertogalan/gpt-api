@@ -104,8 +104,19 @@ def speak():
         logger.error(e)
         return jsonify({'error': str(e)}), 500
 
-@app.route('/<path:path>', methods=['GET', 'POST'])
-def proxy(path):
+@app.route('/ey', methods=['POST'])
+def test():
+    logger.info("test")
+
+    posted_data = request.json
+
+    # Log the posted data
+    #logger.info(f"Posted data: {posted_data}")
+    return "Data logged", 200
+
+
+@app.route('/completion', methods=['POST'])
+def proxy():
     try:
       # Your OpenAI API key
       api_key=os.environ.get("OPENAI_API_KEY")
@@ -114,26 +125,18 @@ def proxy(path):
           'Authorization': f'Bearer {api_key}',
           'Content-Type': 'application/json'
       }
-      # URL to forward the request with path
-      #print(json.dumps(request.form))
       logger.info(request.get_json())
-      #print(request.data)
-      #data=request.json
-      #print(jsonify(data))
       data=request.get_json()
-      url = f'https://api.openai.com/'+ path
-      if request.method == 'POST':
-          logger.info("post")
-          response = requests.post(url, headers=headers, data=json.dumps(data))
-      elif request.method == 'GET':
-          logger.info("get")
-          response = requests.get(url, headers=headers, params=request.args)
-      logger.info(response.json())
+      url = f'https://api.openai.com/v1/chat/completions'
+      logger.info("post")
+      response = requests.post(url, headers=headers, data=json.dumps(data))
       return response.json()
+      return "Success", 200
     except Exception as e:
+        print("eyy")
         logger.error(e)
-        return "error"
+        return logger.error(e), 500
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8082, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')
+    app.run(debug=True, port=8083, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')

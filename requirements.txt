@@ -3,3 +3,4 @@ requests
 flask
 pyopenssl
 termux-api
+elevenlabs

@@ -27,15 +27,58 @@ app = Flask(__name__)
 
 import re
 
+# Elevenlabs
+# Define constants for the script
+CHUNK_SIZE = 1024  # Size of chunks to read/write at a time
+XI_API_KEY = "ea904e6a1e8aa96e324539f3d47d6b25"  # Your API key for authentication
+
+
 def sanitize_text(text):
     # Regular expression pattern to match only allowed characters
     # ^ outside of character set means negation, so it matches everything that is NOT a-zA-Z0-9.,
     pattern = '[^a-zA-Z0-9.,]'
+    # sanitize the text with letters, numbers, and punctuation, line breaks, quotes, spaces not more than one if there are more than one makes it one
+    pattern = '[^a-zA-Z0-9.,\n\'" ]'
 
     # Replace all characters not in the allowed set with an empty string
     sanitized_text = re.sub(pattern, '', text)
 
     return sanitized_text
+
+
+def download_audio(text, voice_id, output_path):
+    tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream"
+    headers = {
+        "Accept": "application/json",
+        "xi-api-key": XI_API_KEY
+    }
+    data = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.2,
+            "similarity_boost": 0.8,
+            "style": 0.0,
+            "use_speaker_boost": True
+        }
+    }
+    response = requests.post(tts_url, headers=headers, json=data, stream=True)
+    if response.ok:
+        with open(output_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
+                f.write(chunk)
+        print("Audio stream saved successfully.")
+    else:
+        print(response.text)
+
+def elevenlabs_speak(text, voice_id, output_path):
+    try:
+        download_audio(text, voice_id, output_path)
+        return True
+    except Exception as e:
+        logger.error(e)
+        termux_tts_speakold(e, "en")
+        return jsonify({'error': str(e)}), 500
 
 
 def termux_tts_speakold(text, language='en'):
@@ -49,7 +92,7 @@ def termux_tts_speakold(text, language='en'):
         raise Exception("The subprocess did not respond in 20 seconds.")
     return "Success"
 
-def termux_tts_speak(text, language='en', endpoint='192.168.141:8080'):
+def termux_tts_speak(text, language='en', endpoint="http://fake.com"):
     # Constructing the command
     text=sanitize_text(text)
     # Your specific data
@@ -69,13 +112,30 @@ def termux_tts_speak(text, language='en', endpoint='192.168.141:8080'):
     try:
         # Executing the command with a timeout of 40 seconds
         logger.info("playing ... ")
-        subprocess.run(['mpv', '-'], input=mp3_fp.read(), check=True, timeout=40)
+        subprocess.run(['mpv', '-'], input=mp3_fp.read(), check=True, timeout=60)
 
     except subprocess.TimeoutExpired:
-        raise Exception("The subprocess did not respond in 20 seconds.")
+        raise Exception("The subprocess did not respond in 60 seconds.")
     return "Success"
 
-@app.route('/speakold', methods=['POST'])
+@app.route('/shuo2', methods=['POST'])
+def elevenlabs():
+    try:
+        # play audio using elevenlabs
+        data = request.json
+        text = data.get('text')
+        logger.info(text)
+        resp=elevenlabs_speak(text, "TWUKKXAylkYxxlPe4gx0", "play.mp3")
+        if True:
+            os.system(f"termux-media-player play play.mp3")
+            return jsonify({'message': text})
+        else:
+            return resp, 500
+    except Exception as e:
+        logger.error(e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/shuo', methods=['POST'])
 def speakold():
     try:
         data = request.json
@@ -126,7 +186,7 @@ def test():
     return "Data logged", 200
 
 
-@app.route('/completion', methods=['POST'])
+@app.route('/calculate', methods=['POST'])
 def proxy():
     try:
       # Your OpenAI API key

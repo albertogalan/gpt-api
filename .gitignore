@@ -1,1 +1,4 @@
 env*
+compile*/
+run/
+*.mp3

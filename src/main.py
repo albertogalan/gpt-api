@@ -186,7 +186,7 @@ def test():
     return "Data logged", 200
 
 
-@app.route('/calculate', methods=['POST'])
+@app.route('/openai', methods=['POST'])
 def proxy():
     try:
       # Your OpenAI API key
@@ -201,8 +201,41 @@ def proxy():
       url = f'https://api.openai.com/v1/chat/completions'
       logger.info("post")
       response = requests.post(url, headers=headers, data=json.dumps(data))
-      return response.json()
-      return "Success", 200
+      data = {"text": response.json()["choices"][0]["message"]["content"]}
+      return data
+    except Exception as e:
+        print("eyy")
+        logger.error(e)
+        return logger.error(e), 500
+
+@app.route('/claude', methods=['POST'])
+def claude():
+    try:
+        # Your Anthropics API key
+        api_key=os.environ.get("ANTHROPIC_API_KEY")
+        # Headers for Anthropics request
+        headers = {
+            'x-api-key': api_key,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json'
+        }
+        logger.info(request.get_json())
+
+        tmpdata=request.get_json()
+        MODEL=tmpdata.get("model")
+        "\n\nHuman: {userQuestion}\n\nAssistant:"
+        PROMPT="\n\nHuman: "+tmpdata.get("messages")[1].get("content")+"\n\nAssistant:"+tmpdata.get("messages")[0].get("content")
+        MAX_TOKENS=500
+        data = {
+            "model": MODEL,
+            "max_tokens_to_sample": 1024,
+            "prompt": PROMPT
+        }
+        url = f'https://api.anthropic.com/v1/complete'
+        logger.info("post")
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        data = {"text": response.json()["completion"]}
+        return data
     except Exception as e:
         print("eyy")
         logger.error(e)

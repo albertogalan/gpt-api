@@ -16,6 +16,7 @@ else:
     logging.debug("invisible magic")
     logger.setLevel(logging.ERROR)
 
+logger.setLevel(logging.DEBUG)
 import sys
 
 # speak
@@ -219,27 +220,18 @@ def claude():
             'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json'
         }
-        logger.info(request.get_json())
-
-        tmpdata=request.get_json()
-        MODEL=tmpdata.get("model")
-        "\n\nHuman: {userQuestion}\n\nAssistant:"
-        PROMPT="\n\nHuman: "+tmpdata.get("messages")[1].get("content")+"\n\nAssistant:"+tmpdata.get("messages")[0].get("content")
-        MAX_TOKENS=500
-        data = {
-            "model": MODEL,
-            "max_tokens_to_sample": 1024,
-            "prompt": PROMPT
-        }
         url = f'https://api.anthropic.com/v1/complete'
-        logger.info("post")
+        logger.info(request.get_json())
+        data=request.get_json()
         response = requests.post(url, headers=headers, data=json.dumps(data))
-        data = {"text": response.json()["completion"]}
+        logger.info(response.json())
+        #data = {"text": response.json()["completion"]}
+        data = {"text": response.json()}
         return data
     except Exception as e:
         print("eyy")
         logger.error(e)
-        return logger.error(e), 500
+        return logger.error(response.json()), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=8083, ssl_context=('certs/cert.pem','certs/key.pem'), host='0.0.0.0')

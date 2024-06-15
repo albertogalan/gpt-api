@@ -49,6 +49,7 @@ def sanitize_text(text):
 
 def download_audio(text, voice_id, output_path):
     tts_url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream"
+    logger.info(tts_url)
     headers = {
         "Accept": "application/json",
         "xi-api-key": XI_API_KEY
@@ -120,13 +121,14 @@ def termux_tts_speak(text, language='en', endpoint="http://fake.com"):
     return "Success"
 
 @app.route('/shuo2', methods=['POST'])
-def elevenlabs():
+def elevenlabs(v_id="TWUKKXAylkYxxlPe4gx0"):
     try:
         # play audio using elevenlabs
         data = request.json
         text = data.get('text')
+        v_id = data.get('v_id')
         logger.info(text)
-        resp=elevenlabs_speak(text, "TWUKKXAylkYxxlPe4gx0", "play.mp3")
+        resp=elevenlabs_speak(text=text, voice_id=v_id, output_path="play.mp3")
         if True:
             os.system(f"termux-media-player play play.mp3")
             return jsonify({'message': text})
